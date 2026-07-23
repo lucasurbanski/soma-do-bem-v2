@@ -119,7 +119,16 @@ Usuários demo: `admin@apoieaqui.dev`/`Admin!2026dev`, `organizador@apoieaqui.de
 
 > Formato: `AAAA-MM-DD` — o que foi feito. Entrada nova no topo.
 
-### 2026-07-23 — Fundação + primeira entrega
+### 2026-07-23 (b) — Contexto vivo + ambientes dev/prod no GitHub
+- Criado `docs/CONTEXT.md` (este documento âncora, atualizado a cada movimento).
+- Criado `docs/12-environments.md` (estratégia dev/prod: branches, Supabase, Vercel, migrations por ambiente).
+- Criado `.github/workflows/ci.yml` (lint + typecheck + test + build em cada PR).
+- Git: branch `master`→`main`; criado `develop`. Remote `origin` = `soma-do-bem-v2`.
+- **Push feito:** `main` e `develop` no GitHub (repo antes vazio, agora populado). Trabalhando em `develop`.
+- Pendente (você): criar projeto Supabase de **produção**; configurar env vars por ambiente na Vercel; proteger `main`.
+- **Próximo:** iniciar revisão página por página (começando pela definição da ordem com o Lucas).
+
+### 2026-07-23 (a) — Fundação + primeira entrega
 - Auditoria do legado (mockups locais + staging via navegador + repos GitHub) → `docs/00`–`02`.
 - 12 documentos de produto/arquitetura/segurança/pagamentos/roadmap/Woovi/deploy/decisões (`docs/00`–`11`).
 - Migrations 0001–0007 (schema, financeiro, plataforma, RLS, config, views, `apply_donation_paid`) aplicadas no Supabase DEV.
