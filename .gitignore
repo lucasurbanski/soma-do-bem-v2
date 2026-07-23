@@ -1,0 +1,54 @@
+# ===== Segredos / ambiente (NUNCA versionar) =====
+.env
+.env.*
+!.env.example
+*.local
+
+# ===== Dependências =====
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+
+# ===== Next.js =====
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# ===== Produção =====
+/dist
+
+# ===== Testes / cobertura =====
+/coverage
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
+
+# ===== Logs =====
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Supabase CLI (local) =====
+/supabase/.branches
+/supabase/.temp
+
+# ===== Editores / SO =====
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ===== Referências do legado (mantidas fora do build) =====
+# (mockups .png e wireframe .html ficam na raiz apenas como referência de design)

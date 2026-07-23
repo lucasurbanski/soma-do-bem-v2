@@ -1,0 +1,9 @@
+.next
+node_modules
+coverage
+playwright-report
+test-results
+scratchpad
+*.png
+package-lock.json
+dashboard-vaquinhas.html

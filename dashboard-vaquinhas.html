@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Apoie Aqui — Painel Admin</title>
+<style>
+  :root{
+    --bg:#FAF6F4; --panel:#ffffff; --line:#EFE3DF; --line-strong:#E3D2CC;
+    --text:#2A211F; --muted:#8C7A74;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(40,20,15,.05), 0 10px 24px -16px rgba(40,20,15,.22);
+    --accent:#EF4444; --accent-dark:#C93131; --accent-bg:#FDEBEA;
+    --heart:#FF6F91; --heart-bg:#FFEEF2;
+    --ok:#1E9E64; --ok-bg:#E8F8EF;
+    --warn:#D98A11; --warn-bg:#FFF4DE;
+    --bad:#DC3545; --bad-bg:#FDEAEC;
+    --info:#3B6FD9; --info-bg:#EAF0FE;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+  .app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{background:var(--panel);border-right:1px solid var(--line);padding:16px 0;display:flex;flex-direction:column;}
+  .brand{padding:0 16px 16px;border-bottom:1px solid var(--line);margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .brand .box{background:var(--accent);color:#fff;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
+  .brand .name{font-weight:700;font-size:15px;letter-spacing:.2px;line-height:1.1;}
+  .brand .sub{color:var(--muted);font-size:11px;}
+  nav{display:flex;flex-direction:column;padding:8px;gap:2px;}
+  nav button{
+    text-align:left;background:transparent;border:1px solid transparent;color:var(--text);
+    border-radius:10px;padding:10px 12px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  }
+  nav button:hover{background:#FBF1EF;}
+  nav button.active{background:var(--accent-bg);color:var(--accent-dark);font-weight:700;}
+  nav button .count{font-size:11px;border-radius:999px;padding:1px 7px;color:var(--muted);background:#F3EBE8;}
+  nav button.active .count{color:var(--accent-dark);background:#fff;}
+  .sidebar-foot{margin-top:auto;padding:12px 16px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);}
+
+  /* MAIN */
+  main{padding:20px 24px;overflow-x:auto;}
+  header.topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+  header.topbar h1{margin:0;font-size:20px;}
+  header.topbar p{margin:2px 0 0;color:var(--muted);font-size:12px;}
+  .search-global{border:1px solid var(--line-strong);border-radius:10px;padding:8px 12px;font-size:12px;width:240px;background:var(--panel);}
+
+  /* FILTER BAR */
+  .filter-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:20px;}
+  .filter-group{display:flex;flex-direction:column;gap:4px;}
+  .filter-group label{text-transform:uppercase;letter-spacing:.4px;font-size:10px;color:var(--muted);}
+  .filter-group select,.filter-group input{border:1px solid var(--line-strong);border-radius:8px;padding:7px 9px;font-size:12.5px;background:#fff;color:var(--text);min-width:120px;}
+  .filter-actions{display:flex;gap:8px;margin-left:auto;}
+  .note-inline{font-size:11px;color:var(--muted);margin:-10px 0 16px;}
+
+  /* CARDS */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+  .card{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+  .card .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;}
+  .card .value{font-size:22px;font-weight:700;}
+  .card .delta{font-size:11px;margin-top:6px;color:var(--muted);}
+  .card.accent{border-color:var(--accent);}
+  .card.accent .value{color:var(--accent-dark);}
+  .card.heart .value{color:var(--heart);}
+
+  /* PANEL / TABLE */
+  .panel{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;}
+  .panel-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .panel-head h2{margin:0;font-size:14px;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .toolbar input, .toolbar select{
+    border:1px solid var(--line-strong);border-radius:8px;padding:7px 9px;font-size:12px;background:var(--panel);color:var(--text);
+  }
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{
+    text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
+    background:#FCF8F6;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);
+    cursor:pointer;white-space:nowrap;user-select:none;
+  }
+  thead th:hover{color:var(--text);}
+  thead th.sorted::after{content:" ▾";}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
+  tbody tr:hover{background:#FDF9F7;}
+  .mono{font-variant-numeric:tabular-nums;}
+  .muted{color:var(--muted);}
+  .empty-row td{text-align:center;color:var(--muted);padding:24px;font-style:italic;}
+  .rank{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:var(--accent-bg);color:var(--accent-dark);font-weight:700;font-size:11px;}
+
+  /* BADGES */
+  .badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:600;white-space:nowrap;}
+  .b-ok{color:var(--ok);background:var(--ok-bg);}
+  .b-warn{color:var(--warn);background:var(--warn-bg);}
+  .b-bad{color:var(--bad);background:var(--bad-bg);}
+  .b-info{color:var(--info);background:var(--info-bg);}
+  .b-muted{color:var(--muted);background:#F1E9E6;}
+  .b-heart{color:var(--heart);background:var(--heart-bg);}
+
+  /* BUTTONS */
+  .btn{border:1px solid var(--line-strong);border-radius:8px;background:var(--panel);color:var(--text);padding:6px 11px;font-size:11.5px;cursor:pointer;margin-right:4px;}
+  .btn:hover{background:#F6ECE9;}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn.primary:hover{background:var(--accent-dark);}
+  .btn.ok{border-color:var(--ok);color:var(--ok);}
+  .btn.ok:hover{background:var(--ok-bg);}
+  .btn.bad{border-color:var(--bad);color:var(--bad);}
+  .btn.bad:hover{background:var(--bad-bg);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .pagination{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:11.5px;color:var(--muted);}
+  .pagination .btn{padding:4px 9px;}
+
+  /* MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(30,15,12,.45);display:none;align-items:flex-start;justify-content:center;padding:60px 16px;z-index:50;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);width:100%;max-width:480px;overflow:hidden;}
+  .modal-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h3{margin:0;font-size:14px;}
+  .modal-head .x{cursor:pointer;border:1px solid var(--line-strong);border-radius:8px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .modal-body{padding:16px;}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:8px;margin-bottom:8px;font-size:13px;}
+  .kv .k{color:var(--muted);}
+  .modal-foot{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;}
+  textarea{width:100%;border:1px solid var(--line-strong);border-radius:8px;padding:8px;font-size:12px;font-family:inherit;resize:vertical;min-height:60px;}
+
+  .section{display:none;}
+  .section.active{display:block;}
+  .hint{font-size:11px;color:var(--muted);margin:-8px 0 14px;}
+  .tag-note{border:1px dashed var(--line-strong);border-radius:10px;padding:9px 12px;font-size:11.5px;color:var(--muted);margin-bottom:16px;background:#FFFDFB;}
+
+  /* CHARTS */
+  .charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:20px;}
+  .chart-box{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .chart-box .panel-head{padding:12px 16px;border-bottom:1px solid var(--line);}
+  .chart-box .panel-head h2{margin:0;font-size:13px;}
+  .chart-box .panel-head .hint{margin:2px 0 0;}
+  .chart-wrap{padding:10px 14px 6px;}
+  .chart-legend{display:flex;gap:16px;flex-wrap:wrap;padding:0 16px 14px;font-size:11px;color:var(--muted);}
+  .chart-legend .dot{display:inline-block;width:8px;height:8px;border-radius:999px;margin-right:5px;}
+  svg.chart text{font-family:Arial,sans-serif;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="box">AA</div>
+      <div>
+        <div class="name">Apoie Aqui</div>
+        <div class="sub">Painel admin</div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="sidebar-foot">Wireframe funcional — dados de exemplo. Sessão: admin@apoieaqui.com.br</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">Visão geral</h1>
+        <p id="pageSub">Resumo consolidado da plataforma</p>
+      </div>
+      <input class="search-global" id="globalSearch" placeholder="Buscar em toda a plataforma (nome, id, e-mail...)">
+    </header>
+
+    <!-- OVERVIEW -->
+    <section class="section active" id="sec-overview">
+
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Período</label>
+          <select id="filterPeriod">
+            <option value="7">Últimos 7 dias</option>
+            <option value="14" selected>Últimos 14 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="filter-group" id="customFromGroup" style="display:none">
+          <label>De</label>
+          <input type="date" id="filterFrom">
+        </div>
+        <div class="filter-group" id="customToGroup" style="display:none">
+          <label>Até</label>
+          <input type="date" id="filterTo">
+        </div>
+        <div class="filter-group">
+          <label>Estado</label>
+          <select id="filterEstado"><option value="">Todos os estados</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Arrecadação mín. (R$)</label>
+          <input type="number" id="filterMin" placeholder="0">
+        </div>
+        <div class="filter-group">
+          <label>Arrecadação máx. (R$)</label>
+          <input type="number" id="filterMax" placeholder="sem limite">
+        </div>
+        <div class="filter-actions">
+          <button class="btn primary" id="applyFilters">Aplicar filtros</button>
+          <button class="btn" id="resetFilters">Limpar</button>
+        </div>
+      </div>
+      <p class="note-inline" id="filterSummary"></p>
+
+      <div class="cards" id="overviewCards"></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Receita da plataforma por canal</h2>
+          <p class="hint" id="revenueHint" style="margin:0"></p>
+        </div>
+        <div class="cards" style="margin:14px 16px 0">
+          <div class="card accent"><div class="label">Taxa sobre doações (5%)</div><div class="value" id="revDoacoes">—</div></div>
+          <div class="card heart"><div class="label">Corações</div><div class="value" id="revCoracoes">—</div></div>
+          <div class="card"><div class="label">Emojis</div><div class="value" id="revEmojis">—</div></div>
+          <div class="card"><div class="label">Total da plataforma</div><div class="value" id="revTotal">—</div></div>
+        </div>
+        <div class="chart-wrap" id="chartRevenue"></div>
+        <div class="chart-legend">
+          <span><span class="dot" style="background:var(--accent)"></span>Taxa de doações</span>
+          <span><span class="dot" style="background:var(--heart)"></span>Corações</span>
+          <span><span class="dot" style="background:#3B6FD9"></span>Emojis</span>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box">
+          <div class="panel-head">
+            <h2>Doações por hora — hoje</h2>
+            <p class="hint" id="chartHourHint"></p>
+          </div>
+          <div class="chart-wrap" id="chartHour"></div>
+        </div>
+        <div class="chart-box">
+          <div class="panel-head">
+            <h2 id="chartDailyDonTitle">Doações por dia</h2>
+            <p class="hint" id="chartDailyDonHint"></p>
+          </div>
+          <div class="chart-wrap" id="chartDailyDon"></div>
+        </div>
+        <div class="chart-box">
+          <div class="panel-head">
+            <h2 id="chartCampTitle">Vaquinhas criadas</h2>
+            <p class="hint" id="chartCampHint"></p>
+          </div>
+          <div class="chart-wrap" id="chartCamp"></div>
+        </div>
+        <div class="chart-box">
+          <div class="panel-head">
+            <h2 id="chartCoracaoTitle">Corações vendidos</h2>
+            <p class="hint" id="chartCoracaoHint"></p>
+          </div>
+          <div class="chart-wrap" id="chartCoracao"></div>
+        </div>
+        <div class="chart-box">
+          <div class="panel-head">
+            <h2 id="chartEmojiTitle">Emojis vendidos</h2>
+            <p class="hint" id="chartEmojiHint"></p>
+          </div>
+          <div class="chart-wrap" id="chartEmoji"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Vaquinhas com saque pendente há mais tempo</h2>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Vaquinha</th><th>Solicitante</th><th>Valor</th><th>Solicitado em</th><th>Status</th></tr></thead>
+          <tbody id="overviewPendingTable"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Últimas transações</h2></div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>ID</th><th>Tipo</th><th>Vaquinha</th><th>Valor</th><th>Data</th><th>Status</th></tr></thead>
+          <tbody id="overviewTxTable"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERFORMANCE -->
+    <section class="section" id="sec-performance">
+      <div class="tag-note">Acompanhe quais vaquinhas estão performando bem e quais precisam de atenção por não estarem recebendo nenhum apoio.</div>
+      <div class="cards" id="perfCards"></div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Top vaquinhas — mais arrecadaram nos últimos 7 dias</h2></div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>#</th><th>Vaquinha</th><th>Criador</th><th>Estado</th><th>Valor (7d)</th><th>Doações (7d)</th><th>Corações (7d)</th><th>Emojis (7d)</th></tr></thead>
+          <tbody id="topTable"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Vaquinhas sem nenhuma arrecadação (<span id="zeroCount">0</span>)</h2>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Vaquinha</th><th>Criador</th><th>Estado</th><th>Meta</th><th>Criada há</th><th>Status</th></tr></thead>
+          <tbody id="zeroTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="zeroPagination"></div>
+      </div>
+    </section>
+
+    <!-- CAMPAIGNS -->
+    <section class="section" id="sec-campaigns">
+      <div class="tag-note">Gerencie todas as vaquinhas criadas na plataforma: aprovar, pausar, encerrar ou verificar denúncias.</div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Vaquinhas (<span id="campCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="campSearch" placeholder="Buscar por título, criador ou ID">
+            <select id="campStatusFilter">
+              <option value="">Todos os status</option>
+              <option value="ativa">Ativa</option>
+              <option value="sob_analise">Sob análise</option>
+              <option value="pausada">Pausada</option>
+              <option value="encerrada">Encerrada</option>
+              <option value="denunciada">Denunciada</option>
+            </select>
+            <select id="campCategoryFilter">
+              <option value="">Todas categorias</option>
+            </select>
+            <select id="campEstadoFilter">
+              <option value="">Todos os estados</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="titulo">Título</th>
+              <th data-sort="categoria">Categoria</th>
+              <th data-sort="estado">Estado</th>
+              <th data-sort="criador">Criador</th>
+              <th data-sort="meta">Meta</th>
+              <th data-sort="arrecadado">Arrecadado</th>
+              <th data-sort="doadores">Doadores</th>
+              <th data-sort="criada">Criada em</th>
+              <th data-sort="status">Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="campTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="campPagination"></div>
+      </div>
+    </section>
+
+    <!-- WITHDRAWALS -->
+    <section class="section" id="sec-withdrawals">
+      <div class="tag-note">Analise e aprove/rejeite os pedidos de saque feitos pelos organizadores das vaquinhas.</div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Saques (<span id="wCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="wSearch" placeholder="Buscar por vaquinha ou solicitante">
+            <select id="wStatusFilter">
+              <option value="">Todos os status</option>
+              <option value="pendente">Pendente</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="pago">Pago</option>
+              <option value="rejeitado">Rejeitado</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="vaquinha">Vaquinha</th>
+              <th data-sort="solicitante">Solicitante</th>
+              <th data-sort="valor">Valor</th>
+              <th data-sort="banco">Dados bancários</th>
+              <th data-sort="solicitado">Solicitado em</th>
+              <th data-sort="status">Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="wTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="wPagination"></div>
+      </div>
+    </section>
+
+    <!-- DONATIONS -->
+    <section class="section" id="sec-donations">
+      <div class="tag-note">Consulte todas as doações recebidas pela plataforma, por vaquinha ou doador.</div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Doações (<span id="dCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="dSearch" placeholder="Buscar por doador ou vaquinha">
+            <select id="dMethodFilter">
+              <option value="">Todos os métodos</option>
+              <option value="pix">Pix</option>
+              <option value="cartao">Cartão de crédito</option>
+              <option value="boleto">Boleto</option>
+            </select>
+            <select id="dStatusFilter">
+              <option value="">Todos os status</option>
+              <option value="confirmada">Confirmada</option>
+              <option value="pendente">Pendente</option>
+              <option value="estornada">Estornada</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="doador">Doador</th>
+              <th data-sort="vaquinha">Vaquinha</th>
+              <th data-sort="valor">Valor</th>
+              <th data-sort="metodo">Método</th>
+              <th data-sort="data">Data</th>
+              <th data-sort="status">Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="dTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="dPagination"></div>
+      </div>
+    </section>
+
+    <!-- HEARTS -->
+    <section class="section" id="sec-hearts">
+      <div class="tag-note">Controle de vendas do coração da plataforma — item vendido a R$ 0,99 por unidade e associado a uma vaquinha (assumi o mesmo preço do emoji; me avise se for outro valor).</div>
+      <div class="cards" id="heartCards"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Compras de coração (<span id="hCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="hSearch" placeholder="Buscar por comprador, vaquinha ou ID">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="comprador">Comprador</th>
+              <th data-sort="vaquinha">Vaquinha</th>
+              <th data-sort="quantidade">Quantidade</th>
+              <th data-sort="valor">Valor pago</th>
+              <th data-sort="dataDias">Data</th>
+            </tr>
+          </thead>
+          <tbody id="hTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="hPagination"></div>
+      </div>
+    </section>
+
+    <!-- EMOJIS -->
+    <section class="section" id="sec-emojis">
+      <div class="tag-note">Controle de vendas do emoji da plataforma — item vendido a R$ 0,99 por unidade e associado a uma vaquinha.</div>
+      <div class="cards" id="emojiCards"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Compras de emoji (<span id="eCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="eSearch" placeholder="Buscar por comprador, vaquinha ou ID">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="comprador">Comprador</th>
+              <th data-sort="vaquinha">Vaquinha</th>
+              <th data-sort="quantidade">Quantidade</th>
+              <th data-sort="valor">Valor pago</th>
+              <th data-sort="dataDias">Data</th>
+            </tr>
+          </thead>
+          <tbody id="eTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="ePagination"></div>
+      </div>
+    </section>
+
+    <!-- TRANSACTIONS -->
+    <section class="section" id="sec-transactions">
+      <div class="tag-note">Livro-razão consolidado: doações, saques, corações, emojis e taxas cobradas pela plataforma.</div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Transações (<span id="tCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="tSearch" placeholder="Buscar por ID ou vaquinha">
+            <select id="tTypeFilter">
+              <option value="">Todos os tipos</option>
+              <option value="doacao">Doação</option>
+              <option value="saque">Saque</option>
+              <option value="taxa">Taxa da plataforma</option>
+              <option value="coracao">Coração</option>
+              <option value="emoji">Emoji</option>
+              <option value="estorno">Estorno</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="tipo">Tipo</th>
+              <th data-sort="vaquinha">Vaquinha</th>
+              <th data-sort="valor">Valor</th>
+              <th data-sort="data">Data</th>
+              <th data-sort="status">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="tPagination"></div>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section class="section" id="sec-users">
+      <div class="tag-note">Usuários cadastrados na plataforma (organizadores e doadores).</div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Usuários (<span id="uCount">0</span>)</h2>
+          <div class="toolbar">
+            <input type="text" id="uSearch" placeholder="Buscar por nome ou e-mail">
+            <select id="uStatusFilter">
+              <option value="">Todos os status</option>
+              <option value="ativo">Ativo</option>
+              <option value="suspenso">Suspenso</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Vaquinhas criadas</th><th>Total doado</th><th>Cadastro</th><th>Status</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="uTable"></tbody>
+        </table>
+        </div>
+        <div class="pagination" id="uPagination"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Detalhes</h3>
+      <div class="x" id="modalClose">✕</div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<script>
+/* ============ MOCK DATA ============ */
+const CATEGORIES = ["Saúde","Emergência","Educação","Animais","Comunidade","Esporte","Projeto pessoal"];
+const NAMES = ["Ana Souza","Carlos Lima","Beatriz Alves","João Pereira","Marina Costa","Rafael Nunes","Fernanda Dias","Lucas Martins","Patrícia Gomes","Diego Ferreira","Camila Rocha","Bruno Cardoso","Larissa Teixeira","Eduardo Ramos","Juliana Barros","Thiago Freitas","Vanessa Pinto","Gabriel Moura","Renata Farias","Felipe Santana"];
+const TITLES = ["Cirurgia urgente para meu pai","Reconstrução após enchente","Tratamento oncológico da Maria","Formatura sem juros","Resgate de animais abandonados","Reforma do abrigo comunitário","Time de futebol de base","Instrumentos para orquestra jovem","Casa da família Silva","Prótese para o Pedro","Custeio de tratamento raro","Campanha da creche do bairro","Viagem missionária","Equipamento de fisioterapia","Ajuda para pequeno produtor"];
+const BRAZIL_STATES = [
+  ["AC","Acre"],["AL","Alagoas"],["AP","Amapá"],["AM","Amazonas"],["BA","Bahia"],["CE","Ceará"],
+  ["DF","Distrito Federal"],["ES","Espírito Santo"],["GO","Goiás"],["MA","Maranhão"],["MT","Mato Grosso"],
+  ["MS","Mato Grosso do Sul"],["MG","Minas Gerais"],["PA","Pará"],["PB","Paraíba"],["PR","Paraná"],
+  ["PE","Pernambuco"],["PI","Piauí"],["RJ","Rio de Janeiro"],["RN","Rio Grande do Norte"],["RS","Rio Grande do Sul"],
+  ["RO","Rondônia"],["RR","Roraima"],["SC","Santa Catarina"],["SP","São Paulo"],["SE","Sergipe"],["TO","Tocantins"]
+];
+// distribuição com peso maior para SC/SP/RJ/PR (empresa é catarinense)
+const STATE_WEIGHTS = ["SC","SC","SC","SC","SP","SP","SP","RJ","RJ","PR","PR","MG","MG","RS","BA","SC","SP"];
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[rnd(0,arr.length-1)];}
+function pickState(){return pick(STATE_WEIGHTS.length?STATE_WEIGHTS:BRAZIL_STATES.map(s=>s[0]));}
+function money(v){return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function dateStr(daysAgo){const d=new Date();d.setDate(d.getDate()-daysAgo);return d.toLocaleDateString('pt-BR');}
+function shortDate(daysAgo){const d=new Date();d.setDate(d.getDate()-daysAgo);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
+function hourLabel(h){return String(h).padStart(2,'0')+'h';}
+
+let campaigns=[], withdrawals=[], donations=[], transactions=[], users=[], emojiSales=[], heartSales=[];
+const EMOJI_PRICE=0.99;
+const HEART_PRICE=0.99; // assumido igual ao emoji — ajuste se o preço real for diferente
+
+function genData(){
+  const campStatuses=["ativa","ativa","ativa","sob_analise","pausada","encerrada","denunciada"];
+  for(let i=1;i<=60;i++){
+    const meta=rnd(2,150)*1000;
+    const pct=Math.random()*Math.random(); // enviesado para valores mais baixos (mais realista)
+    const arrecadado=Math.round(meta*pct);
+    const criadaDias=rnd(0,300);
+    campaigns.push({
+      id:"VQ-"+(1000+i),
+      titulo:pick(TITLES)+" #"+i,
+      categoria:pick(CATEGORIES),
+      estado:pickState(),
+      criador:pick(NAMES),
+      meta, arrecadado,
+      doadores:rnd(0,400),
+      criadaDias,
+      criada:dateStr(criadaDias),
+      status:pick(campStatuses)
+    });
+  }
+  // ~80% das vaquinhas recebem doações/corações/emojis; ~20% ficam sem nenhuma movimentação (útil para a aba de performance)
+  const activePool = campaigns.slice(0, Math.floor(campaigns.length*0.8));
+
+  const wStatuses=["pendente","pendente","pendente","aprovado","pago","rejeitado"];
+  for(let i=1;i<=26;i++){
+    const camp=pick(campaigns);
+    const dias=rnd(0,40);
+    withdrawals.push({
+      id:"SQ-"+(500+i),
+      vaquinha:camp.titulo,
+      vaquinhaId:camp.id,
+      solicitante:camp.criador,
+      valor:rnd(200,20000),
+      banco:"Banco "+pick(["Itaú","Bradesco","Nubank","Caixa","Santander","BB"])+" • Ag "+rnd(1000,9999)+" • CC "+rnd(10000,99999)+"-"+rnd(0,9),
+      solicitadoDias:dias,
+      solicitado:dateStr(dias),
+      status:pick(wStatuses)
+    });
+  }
+
+  const dMethods=["pix","pix","cartao","cartao","boleto"];
+  const dStatuses=["confirmada","confirmada","confirmada","pendente","estornada"];
+  for(let i=1;i<=260;i++){
+    const camp=pick(activePool);
+    const dias=rnd(0,180);
+    donations.push({
+      id:"DN-"+(9000+i),
+      doador:pick(NAMES),
+      vaquinha:camp.titulo,
+      vaquinhaId:camp.id,
+      estado:camp.estado,
+      valor:rnd(10,3000),
+      metodo:pick(dMethods),
+      dataDias:dias,
+      data:dateStr(dias),
+      status:pick(dStatuses)
+    });
+  }
+
+  // transações derivadas de doações + saques (corações/emojis entram depois de serem gerados)
+  donations.forEach(d=>{
+    transactions.push({id:"TX-D-"+d.id.split('-')[1],tipo:"doacao",vaquinha:d.vaquinha,valor:d.valor,dataDias:d.dataDias,data:d.data,status:d.status==="confirmada"?"concluida":(d.status==="pendente"?"pendente":"estornada")});
+    if(d.status==="confirmada"){
+      const taxa=Math.round(d.valor*0.05*100)/100;
+      transactions.push({id:"TX-F-"+d.id.split('-')[1],tipo:"taxa",vaquinha:d.vaquinha,valor:taxa,dataDias:d.dataDias,data:d.data,status:"concluida"});
+    }
+  });
+  withdrawals.forEach(w=>{
+    transactions.push({id:"TX-S-"+w.id.split('-')[1],tipo:"saque",vaquinha:w.vaquinha,valor:w.valor,dataDias:w.solicitadoDias,data:w.solicitado,status:w.status==="pago"?"concluida":(w.status==="rejeitado"?"cancelada":"pendente")});
+  });
+
+  const uStatuses=["ativo","ativo","ativo","ativo","suspenso"];
+  NAMES.forEach((n,idx)=>{
+    const created=campaigns.filter(c=>c.criador===n).length;
+    const donated=donations.filter(d=>d.doador===n).reduce((s,d)=>s+d.valor,0);
+    users.push({
+      id:"US-"+(100+idx),
+      nome:n,
+      email:n.toLowerCase().replace(/\s+/g,'.')+"@email.com",
+      criadas:created,
+      totalDoado:donated,
+      cadastroDias:rnd(10,600),
+      cadastro:dateStr(rnd(10,600)),
+      status:pick(uStatuses)
+    });
+  });
+
+  return activePool;
+}
+
+function genReactionSales(activePool){
+  for(let i=1;i<=220;i++){
+    const camp=pick(activePool);
+    const dias=rnd(0,119);
+    const qty=rnd(1,12);
+    emojiSales.push({
+      id:"EJ-"+(6000+i), comprador:pick(NAMES), vaquinha:camp.titulo, vaquinhaId:camp.id, estado:camp.estado,
+      quantidade:qty, valor:Math.round(qty*EMOJI_PRICE*100)/100, dataDias:dias, data:dateStr(dias)
+    });
+  }
+  for(let i=1;i<=220;i++){
+    const camp=pick(activePool);
+    const dias=rnd(0,119);
+    const qty=rnd(1,15);
+    heartSales.push({
+      id:"CR-"+(7000+i), comprador:pick(NAMES), vaquinha:camp.titulo, vaquinhaId:camp.id, estado:camp.estado,
+      quantidade:qty, valor:Math.round(qty*HEART_PRICE*100)/100, dataDias:dias, data:dateStr(dias)
+    });
+  }
+  emojiSales.forEach(e=>transactions.push({id:"TX-E-"+e.id.split('-')[1],tipo:"emoji",vaquinha:e.vaquinha,valor:e.valor,dataDias:e.dataDias,data:e.data,status:"concluida"}));
+  heartSales.forEach(h=>transactions.push({id:"TX-C-"+h.id.split('-')[1],tipo:"coracao",vaquinha:h.vaquinha,valor:h.valor,dataDias:h.dataDias,data:h.data,status:"concluida"}));
+}
+
+const activePool = genData();
+genReactionSales(activePool);
+
+const campaignsById = {};
+campaigns.forEach(c=>campaignsById[c.id]=c);
+
+/* ============ STATE ============ */
+const state={
+  section:'overview',
+  filters:{period:14, from:null, to:null, estado:'', min:'', max:''},
+  camp:{page:1,pageSize:8,sort:'criadaDias',dir:1,search:'',status:'',cat:'',estado:''},
+  w:{page:1,pageSize:8,sort:'solicitadoDias',dir:1,search:'',status:''},
+  d:{page:1,pageSize:8,sort:'dataDias',dir:1,search:'',method:'',status:''},
+  t:{page:1,pageSize:10,sort:'dataDias',dir:1,search:'',type:''},
+  u:{page:1,pageSize:8,search:'',status:''},
+  e:{page:1,pageSize:8,sort:'dataDias',dir:1,search:''},
+  h:{page:1,pageSize:8,sort:'dataDias',dir:1,search:''},
+  zero:{page:1,pageSize:8}
+};
+
+const statusBadge = {
+  ativa:['b-ok','Ativa'], sob_analise:['b-warn','Sob análise'], pausada:['b-muted','Pausada'],
+  encerrada:['b-info','Encerrada'], denunciada:['b-bad','Denunciada'],
+  pendente:['b-warn','Pendente'], aprovado:['b-info','Aprovado'], pago:['b-ok','Pago'], rejeitado:['b-bad','Rejeitado'],
+  confirmada:['b-ok','Confirmada'], estornada:['b-bad','Estornada'],
+  concluida:['b-ok','Concluída'], cancelada:['b-bad','Cancelada'],
+  ativo:['b-ok','Ativo'], suspenso:['b-bad','Suspenso']
+};
+function badge(s){const b=statusBadge[s]||['b-muted',s];return `<span class="badge ${b[0]}">${b[1]}</span>`;}
+const typeBadge={doacao:['b-ok','Doação'],saque:['b-info','Saque'],taxa:['b-muted','Taxa'],coracao:['b-heart','Coração'],emoji:['b-info','Emoji'],estorno:['b-bad','Estorno']};
+function tbadge(t){const b=typeBadge[t]||['b-muted',t];return `<span class="badge ${b[0]}">${b[1]}</span>`;}
+
+/* ============ NAV ============ */
+const SECTIONS=[
+  {id:'overview',label:'Visão geral',title:'Visão geral',sub:'Resumo consolidado da plataforma'},
+  {id:'performance',label:'Performance',title:'Performance das vaquinhas',sub:'Quem mais arrecadou e quem não recebeu nada',count:()=>campaigns.filter(c=>!hasAnyReceipt(c.id)).length},
+  {id:'campaigns',label:'Vaquinhas',title:'Vaquinhas',sub:'Todas as campanhas criadas no sistema',count:()=>campaigns.length},
+  {id:'withdrawals',label:'Saques',title:'Saques',sub:'Pedidos de saque dos organizadores',count:()=>withdrawals.filter(w=>w.status==='pendente').length},
+  {id:'donations',label:'Doações',title:'Doações',sub:'Doações recebidas pela plataforma',count:()=>0},
+  {id:'hearts',label:'Corações',title:'Corações',sub:'Vendas do coração da plataforma (R$ 0,99 cada)',count:()=>0},
+  {id:'emojis',label:'Emojis',title:'Emojis',sub:'Vendas do emoji da plataforma (R$ 0,99 cada)',count:()=>0},
+  {id:'transactions',label:'Transações',title:'Transações',sub:'Livro-razão de todas as movimentações',count:()=>0},
+  {id:'users',label:'Usuários',title:'Usuários',sub:'Organizadores e doadores cadastrados',count:()=>0},
+];
+function hasAnyReceipt(id){
+  return donations.some(d=>d.vaquinhaId===id && d.status==='confirmada') ||
+         heartSales.some(h=>h.vaquinhaId===id) ||
+         emojiSales.some(e=>e.vaquinhaId===id);
+}
+const nav=document.getElementById('nav');
+SECTIONS.forEach(s=>{
+  const btn=document.createElement('button');
+  btn.dataset.id=s.id;
+  btn.innerHTML=`<span>${s.label}</span>${s.count?`<span class="count">${s.count()}</span>`:''}`;
+  btn.onclick=()=>goTo(s.id);
+  nav.appendChild(btn);
+});
+function goTo(id){
+  state.section=id;
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  const meta=SECTIONS.find(s=>s.id===id);
+  document.getElementById('pageTitle').textContent=meta.title;
+  document.getElementById('pageSub').textContent=meta.sub;
+  renderAll();
+}
+
+/* ============ FILTER BAR (estado / período / arrecadação) ============ */
+const estadoSelects=['filterEstado','campEstadoFilter'];
+estadoSelects.forEach(id=>{
+  const sel=document.getElementById(id);
+  BRAZIL_STATES.forEach(([uf,nome])=>{
+    const o=document.createElement('option'); o.value=uf; o.textContent=`${uf} — ${nome}`;
+    sel.appendChild(o);
+  });
+});
+
+document.getElementById('filterPeriod').onchange=e=>{
+  const isCustom=e.target.value==='custom';
+  document.getElementById('customFromGroup').style.display=isCustom?'flex':'none';
+  document.getElementById('customToGroup').style.display=isCustom?'flex':'none';
+};
+document.getElementById('applyFilters').onclick=()=>{
+  const periodVal=document.getElementById('filterPeriod').value;
+  if(periodVal==='custom'){
+    const from=document.getElementById('filterFrom').value;
+    const to=document.getElementById('filterTo').value;
+    if(from && to){
+      const days=Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
+      state.filters.period=days;
+      state.filters.from=from; state.filters.to=to;
+    }
+  } else {
+    state.filters.period=parseInt(periodVal,10);
+    state.filters.from=null; state.filters.to=null;
+  }
+  state.filters.estado=document.getElementById('filterEstado').value;
+  state.filters.min=document.getElementById('filterMin').value;
+  state.filters.max=document.getElementById('filterMax').value;
+  renderOverview();
+};
+document.getElementById('resetFilters').onclick=()=>{
+  state.filters={period:14, from:null, to:null, estado:'', min:'', max:''};
+  document.getElementById('filterPeriod').value='14';
+  document.getElementById('customFromGroup').style.display='none';
+  document.getElementById('customToGroup').style.display='none';
+  document.getElementById('filterEstado').value='';
+  document.getElementById('filterMin').value='';
+  document.getElementById('filterMax').value='';
+  renderOverview();
+};
+
+/* ============ CHART HELPERS (SVG puro, sem libs) ============ */
+function barChartSVG(data, opts){
+  const o=Object.assign({width:280,height:130,color:'#EF4444',formatTip:v=>v}, opts);
+  const max=Math.max(...data.map(d=>d.value),1);
+  const padBottom=18, padTop=8;
+  const chartH=o.height-padBottom;
+  const barW=o.width/data.length;
+  let bars='', labels='';
+  data.forEach((d,i)=>{
+    const h=Math.max(1,Math.round((d.value/max)*(chartH-padTop)));
+    const x=i*barW+barW*0.18;
+    const w=barW*0.64;
+    const y=chartH-h;
+    bars+=`<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="2" fill="${o.color}"><title>${d.label}: ${o.formatTip(d.value)}</title></rect>`;
+    const showEvery=Math.max(1,Math.ceil(data.length/7));
+    if(i%showEvery===0){
+      const lx=i*barW+barW/2;
+      labels+=`<text x="${lx.toFixed(1)}" y="${o.height-4}" font-size="8" text-anchor="middle" fill="#8C7A74">${d.label}</text>`;
+    }
+  });
+  return `<svg class="chart" viewBox="0 0 ${o.width} ${o.height}" width="100%" height="${o.height}" preserveAspectRatio="none" style="height:${o.height}px">
+    ${bars}${labels}
+    <line x1="0" y1="${chartH}" x2="${o.width}" y2="${chartH}" stroke="#E3D2CC" stroke-width="1"/>
+  </svg>`;
+}
+function stackedBarChartSVG(data, opts){
+  const o=Object.assign({width:900,height:150},opts);
+  const totals=data.map(d=>d.segments.reduce((s,x)=>s+x.value,0));
+  const max=Math.max(...totals,1);
+  const padBottom=18;
+  const chartH=o.height-padBottom;
+  const barW=o.width/data.length;
+  let bars='',labels='';
+  data.forEach((d,i)=>{
+    let yCursor=chartH;
+    d.segments.forEach(seg=>{
+      const h=Math.round((seg.value/max)*(chartH-8));
+      const y=yCursor-h;
+      const x=i*barW+barW*0.15;
+      const w=barW*0.7;
+      bars+=`<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${Math.max(0,h)}" fill="${seg.color}"><title>${d.label} — ${seg.label}: ${money(seg.value)}</title></rect>`;
+      yCursor=y;
+    });
+    const showEvery=Math.max(1,Math.ceil(data.length/8));
+    if(i%showEvery===0){
+      labels+=`<text x="${(i*barW+barW/2).toFixed(1)}" y="${o.height-4}" font-size="8" text-anchor="middle" fill="#8C7A74">${d.label}</text>`;
+    }
+  });
+  return `<svg class="chart" viewBox="0 0 ${o.width} ${o.height}" width="100%" height="${o.height}" preserveAspectRatio="none">${bars}${labels}<line x1="0" y1="${chartH}" x2="${o.width}" y2="${chartH}" stroke="#E3D2CC"/></svg>`;
+}
+
+/* ============ FILTERED SCOPE (aplica período + estado + arrecadação) ============ */
+function getFilteredCampaignIds(){
+  const f=state.filters;
+  const min=f.min!==''?parseFloat(f.min):null;
+  const max=f.max!==''?parseFloat(f.max):null;
+  return new Set(campaigns.filter(c=>{
+    if(f.estado && c.estado!==f.estado) return false;
+    if(min!==null && c.arrecadado<min) return false;
+    if(max!==null && c.arrecadado>max) return false;
+    return true;
+  }).map(c=>c.id));
+}
+
+function computeSeries(N, idSet){
+  const days=[];
+  for(let i=N-1;i>=0;i--){
+    const dayDon=donations.filter(d=>d.dataDias===i && d.status==='confirmada' && idSet.has(d.vaquinhaId));
+    const dayCamp=campaigns.filter(c=>c.criadaDias===i && idSet.has(c.id));
+    const dayEmoji=emojiSales.filter(e=>e.dataDias===i && idSet.has(e.vaquinhaId));
+    const dayHeart=heartSales.filter(h=>h.dataDias===i && idSet.has(h.vaquinhaId));
+    days.push({
+      label:shortDate(i),
+      donValue:dayDon.reduce((s,d)=>s+d.valor,0),
+      donCount:dayDon.length,
+      campCount:dayCamp.length,
+      emojiQty:dayEmoji.reduce((s,e)=>s+e.quantidade,0),
+      emojiReceita:dayEmoji.reduce((s,e)=>s+e.valor,0),
+      heartQty:dayHeart.reduce((s,h)=>s+h.quantidade,0),
+      heartReceita:dayHeart.reduce((s,h)=>s+h.valor,0),
+      taxaReceita:Math.round(dayDon.reduce((s,d)=>s+d.valor,0)*0.05*100)/100
+    });
+  }
+  return days;
+}
+
+/* ============ RENDER: OVERVIEW ============ */
+function renderOverview(){
+  const f=state.filters;
+  const N=f.period;
+  const idSet=getFilteredCampaignIds();
+  const series=computeSeries(N,idSet);
+
+  const filteredCampaigns=campaigns.filter(c=>idSet.has(c.id));
+  const totalArrecadado=series.reduce((s,d)=>s+d.donValue,0);
+  const totalDoacoes=series.reduce((s,d)=>s+d.donCount,0);
+  const totalTaxas=series.reduce((s,d)=>s+d.taxaReceita,0);
+  const totalCoracaoReceita=series.reduce((s,d)=>s+d.heartReceita,0);
+  const totalCoracaoQtd=series.reduce((s,d)=>s+d.heartQty,0);
+  const totalEmojiReceita=series.reduce((s,d)=>s+d.emojiReceita,0);
+  const totalEmojiQtd=series.reduce((s,d)=>s+d.emojiQty,0);
+  const totalPlataforma=totalTaxas+totalCoracaoReceita+totalEmojiReceita;
+  const ativas=filteredCampaigns.filter(c=>c.status==='ativa').length;
+  const pendentesSaque=withdrawals.filter(w=>w.status==='pendente');
+  const valorPendente=pendentesSaque.reduce((s,w)=>s+w.valor,0);
+
+  let summary=`Mostrando os últimos ${N} dia(s)`;
+  if(f.estado) summary+=` · Estado: ${f.estado}`;
+  if(f.min!=='' || f.max!=='') summary+=` · Arrecadação entre ${f.min!==''?money(parseFloat(f.min)):'R$ 0'} e ${f.max!==''?money(parseFloat(f.max)):'sem limite'}`;
+  summary+=` · ${filteredCampaigns.length} vaquinha(s) no recorte`;
+  document.getElementById('filterSummary').textContent=summary;
+
+  document.getElementById('overviewCards').innerHTML=`
+    <div class="card"><div class="label">Arrecadado (doações)</div><div class="value">${money(totalArrecadado)}</div><div class="delta">${totalDoacoes} doações confirmadas no período</div></div>
+    <div class="card"><div class="label">Vaquinhas ativas</div><div class="value">${ativas}</div><div class="delta">${filteredCampaigns.length} vaquinhas no recorte</div></div>
+    <div class="card"><div class="label">Saques pendentes</div><div class="value">${pendentesSaque.length}</div><div class="delta">${money(valorPendente)} a analisar</div></div>
+    <div class="card"><div class="label">Usuários cadastrados</div><div class="value">${users.length}</div><div class="delta">${users.filter(u=>u.status==='suspenso').length} suspensos</div></div>
+    <div class="card"><div class="label">Vaquinhas sob análise</div><div class="value">${campaigns.filter(c=>c.status==='sob_analise').length}</div><div class="delta">${campaigns.filter(c=>c.status==='denunciada').length} denunciadas</div></div>
+  `;
+
+  document.getElementById('revDoacoes').textContent=money(totalTaxas);
+  document.getElementById('revCoracoes').textContent=money(totalCoracaoReceita);
+  document.getElementById('revEmojis').textContent=money(totalEmojiReceita);
+  document.getElementById('revTotal').textContent=money(totalPlataforma);
+  document.getElementById('revenueHint').textContent=`Referente aos últimos ${N} dia(s) no recorte selecionado`;
+
+  document.getElementById('chartRevenue').innerHTML = stackedBarChartSVG(
+    series.map(d=>({label:d.label, segments:[
+      {label:'Taxa de doações', value:d.taxaReceita, color:'#EF4444'},
+      {label:'Corações', value:d.heartReceita, color:'#FF6F91'},
+      {label:'Emojis', value:d.emojiReceita, color:'#3B6FD9'}
+    ]}))
+  );
+
+  document.getElementById('chartHour').innerHTML = barChartSVG(genHourSeries(idSet), {formatTip:v=>money(v)});
+  const hourData=genHourSeries(idSet);
+  const totalHoje=hourData.reduce((s,h)=>s+h.value,0);
+  document.getElementById('chartHourHint').innerHTML = `<b>${money(totalHoje)}</b> em doações hoje`;
+
+  document.getElementById('chartDailyDonTitle').textContent=`Doações por dia — últimos ${N} dias`;
+  document.getElementById('chartDailyDon').innerHTML = barChartSVG(series.map(d=>({label:d.label,value:d.donValue})), {formatTip:v=>money(v)});
+  document.getElementById('chartDailyDonHint').innerHTML = `<b>${money(totalArrecadado)}</b> arrecadados no período`;
+
+  document.getElementById('chartCampTitle').textContent=`Vaquinhas criadas — últimos ${N} dias`;
+  document.getElementById('chartCamp').innerHTML = barChartSVG(series.map(d=>({label:d.label,value:d.campCount})), {formatTip:v=>v+' vaquinha(s)'});
+  document.getElementById('chartCampHint').innerHTML = `<b>${series.reduce((s,d)=>s+d.campCount,0)}</b> vaquinhas novas no período`;
+
+  document.getElementById('chartCoracaoTitle').textContent=`Corações vendidos — últimos ${N} dias`;
+  document.getElementById('chartCoracao').innerHTML = barChartSVG(series.map(d=>({label:d.label,value:d.heartQty})), {color:'#FF6F91', formatTip:v=>v+' coração(ões)'});
+  document.getElementById('chartCoracaoHint').innerHTML = `<b>${totalCoracaoQtd}</b> corações · ${money(totalCoracaoReceita)}`;
+
+  document.getElementById('chartEmojiTitle').textContent=`Emojis vendidos — últimos ${N} dias`;
+  document.getElementById('chartEmoji').innerHTML = barChartSVG(series.map(d=>({label:d.label,value:d.emojiQty})), {color:'#3B6FD9', formatTip:v=>v+' emoji(s)'});
+  document.getElementById('chartEmojiHint').innerHTML = `<b>${totalEmojiQtd}</b> emojis · ${money(totalEmojiReceita)}`;
+
+  const pend=[...pendentesSaque].sort((a,b)=>b.solicitadoDias-a.solicitadoDias).slice(0,6);
+  document.getElementById('overviewPendingTable').innerHTML = pend.length ? pend.map(w=>`
+    <tr><td>${w.vaquinha}</td><td>${w.solicitante}</td><td class="mono">${money(w.valor)}</td><td>${w.solicitado}</td><td>${badge(w.status)}</td></tr>
+  `).join('') : `<tr class="empty-row"><td colspan="5">Nenhum saque pendente</td></tr>`;
+
+  const lastTx=[...transactions].sort((a,b)=>a.dataDias-b.dataDias).slice(0,8);
+  document.getElementById('overviewTxTable').innerHTML = lastTx.map(t=>`
+    <tr><td class="mono">${t.id}</td><td>${tbadge(t.tipo)}</td><td>${t.vaquinha}</td><td class="mono">${money(t.valor)}</td><td>${t.data}</td><td>${badge(t.status)}</td></tr>
+  `).join('');
+}
+function genHourSeries(idSet){
+  const weights=[1,1,1,1,1,2,3,5,8,10,12,15,18,14,10,9,11,14,18,20,16,10,6,3];
+  const todayDon=donations.filter(d=>d.dataDias===0 && d.status==='confirmada' && idSet.has(d.vaquinhaId));
+  const totalToday=todayDon.reduce((s,d)=>s+d.valor,0) || 1;
+  const weightSum=weights.reduce((s,w)=>s+w,0);
+  return weights.map((w,h)=>({label:hourLabel(h), value:Math.round((w/weightSum)*totalToday)}));
+}
+
+/* ============ RENDER: PERFORMANCE ============ */
+function renderPerformance(){
+  const withReceipt=campaigns.filter(c=>hasAnyReceipt(c.id));
+  const zero=campaigns.filter(c=>!hasAnyReceipt(c.id));
+  const pct=Math.round((withReceipt.length/campaigns.length)*100);
+
+  document.getElementById('perfCards').innerHTML=`
+    <div class="card accent"><div class="label">Taxa de conversão</div><div class="value">${pct}%</div><div class="delta">${withReceipt.length} de ${campaigns.length} vaquinhas receberam doação, coração ou emoji</div></div>
+    <div class="card"><div class="label">Vaquinhas sem nenhuma arrecadação</div><div class="value">${zero.length}</div><div class="delta">precisam de atenção da equipe</div></div>
+    <div class="card"><div class="label">Vaquinhas com atividade</div><div class="value">${withReceipt.length}</div><div class="delta">receberam ao menos 1 apoio</div></div>
+  `;
+
+  const top=campaigns.map(c=>{
+    const don7=donations.filter(d=>d.vaquinhaId===c.id && d.dataDias<7 && d.status==='confirmada');
+    const heart7=heartSales.filter(h=>h.vaquinhaId===c.id && h.dataDias<7);
+    const emoji7=emojiSales.filter(e=>e.vaquinhaId===c.id && e.dataDias<7);
+    return {
+      c, val7:don7.reduce((s,d)=>s+d.valor,0), count7:don7.length,
+      heart7:heart7.reduce((s,h)=>s+h.quantidade,0), emoji7:emoji7.reduce((s,e)=>s+e.quantidade,0)
+    };
+  }).sort((a,b)=>b.val7-a.val7).slice(0,10);
+
+  document.getElementById('topTable').innerHTML = top.map((r,i)=>`
+    <tr>
+      <td><span class="rank">${i+1}</span></td>
+      <td>${r.c.titulo}</td>
+      <td>${r.c.criador}</td>
+      <td>${r.c.estado}</td>
+      <td class="mono">${money(r.val7)}</td>
+      <td class="mono">${r.count7}</td>
+      <td class="mono">${r.heart7}</td>
+      <td class="mono">${r.emoji7}</td>
+    </tr>`).join('') || `<tr class="empty-row"><td colspan="8">Sem dados no período</td></tr>`;
+
+  document.getElementById('zeroCount').textContent=zero.length;
+  paginate(zero, state.zero, 'zeroTable', 'zeroPagination', c=>`
+    <tr>
+      <td>${c.titulo}</td>
+      <td>${c.criador}</td>
+      <td>${c.estado}</td>
+      <td class="mono">${money(c.meta)}</td>
+      <td>${c.criadaDias} dia(s)</td>
+      <td>${badge(c.status)}</td>
+    </tr>`,6);
+}
+
+/* ============ GENERIC TABLE HELPERS ============ */
+function paginate(list,pageState,tbodyId,paginationId,rowFn,emptyColspan){
+  const total=list.length;
+  const totalPages=Math.max(1,Math.ceil(total/pageState.pageSize));
+  if(pageState.page>totalPages) pageState.page=totalPages;
+  const start=(pageState.page-1)*pageState.pageSize;
+  const rows=list.slice(start,start+pageState.pageSize);
+  const tbody=document.getElementById(tbodyId);
+  tbody.innerHTML = rows.length ? rows.map(rowFn).join('') : `<tr class="empty-row"><td colspan="${emptyColspan}">Nenhum resultado encontrado</td></tr>`;
+  document.getElementById(paginationId).innerHTML = `
+    <span>${total} registro(s) — página ${pageState.page} de ${totalPages}</span>
+    <span>
+      <button class="btn" ${pageState.page<=1?'disabled':''} onclick="changePage('${paginationId}',-1)">‹ Anterior</button>
+      <button class="btn" ${pageState.page>=totalPages?'disabled':''} onclick="changePage('${paginationId}',1)">Próxima ›</button>
+    </span>`;
+}
+const pageStateMap={campPagination:'camp', wPagination:'w', dPagination:'d', tPagination:'t', ePagination:'e', hPagination:'h', zeroPagination:'zero'};
+window.changePage=function(paginationId,delta){
+  const key=pageStateMap[paginationId];
+  state[key].page+=delta;
+  renderAll();
+}
+function sortList(list,sort,dir){
+  return [...list].sort((a,b)=>{
+    const av=a[sort], bv=b[sort];
+    if(typeof av==='number') return (av-bv)*dir;
+    return String(av).localeCompare(String(bv),'pt-BR')*dir;
+  });
+}
+function wireSortHeaders(sectionId, pageStateKey, renderFn){
+  document.querySelectorAll(`#${sectionId} thead th[data-sort]`).forEach(th=>{
+    th.onclick=()=>{
+      const key=th.dataset.sort;
+      const st=state[pageStateKey];
+      if(st.sort===key) st.dir*=-1; else {st.sort=key; st.dir=1;}
+      renderFn();
+    };
+    th.classList.toggle('sorted', state[pageStateKey].sort===th.dataset.sort);
+  });
+}
+
+/* ============ RENDER: CAMPAIGNS ============ */
+function renderCampaigns(){
+  const st=state.camp;
+  let list=campaigns.filter(c=>{
+    const s=st.search.toLowerCase();
+    const matchS=!s || c.titulo.toLowerCase().includes(s) || c.criador.toLowerCase().includes(s) || c.id.toLowerCase().includes(s);
+    const matchSt=!st.status || c.status===st.status;
+    const matchC=!st.cat || c.categoria===st.cat;
+    const matchE=!st.estado || c.estado===st.estado;
+    return matchS && matchSt && matchC && matchE;
+  });
+  list=sortList(list,st.sort,st.dir);
+  document.getElementById('campCount').textContent=list.length;
+  paginate(list, st, 'campTable', 'campPagination', c=>{
+    const pct=Math.min(100,Math.round((c.arrecadado/c.meta)*100));
+    return `<tr>
+      <td class="mono muted">${c.id}</td>
+      <td>${c.titulo}</td>
+      <td>${c.categoria}</td>
+      <td>${c.estado}</td>
+      <td>${c.criador}</td>
+      <td class="mono">${money(c.meta)}</td>
+      <td class="mono">${money(c.arrecadado)} <span class="muted">(${pct}%)</span></td>
+      <td class="mono">${c.doadores}</td>
+      <td>${c.criada}</td>
+      <td>${badge(c.status)}</td>
+      <td>
+        <button class="btn" onclick="viewCampaign('${c.id}')">Ver</button>
+        ${c.status==='sob_analise'?`<button class="btn ok" onclick="setCampStatus('${c.id}','ativa')">Aprovar</button>`:''}
+        ${c.status==='ativa'?`<button class="btn" onclick="setCampStatus('${c.id}','pausada')">Pausar</button>`:''}
+        ${c.status!=='encerrada'?`<button class="btn bad" onclick="setCampStatus('${c.id}','encerrada')">Encerrar</button>`:''}
+      </td>
+    </tr>`;
+  },11);
+}
+window.setCampStatus=function(id,status){
+  const c=campaigns.find(c=>c.id===id);
+  if(c){c.status=status; renderAll();}
+}
+window.viewCampaign=function(id){
+  const c=campaigns.find(c=>c.id===id);
+  if(!c) return;
+  const pct=Math.min(100,Math.round((c.arrecadado/c.meta)*100));
+  const heartCount=heartSales.filter(h=>h.vaquinhaId===id).reduce((s,h)=>s+h.quantidade,0);
+  const emojiCount=emojiSales.filter(e=>e.vaquinhaId===id).reduce((s,e)=>s+e.quantidade,0);
+  openModal(`Vaquinha ${c.id}`, `
+    <div class="kv"><div class="k">Título</div><div>${c.titulo}</div></div>
+    <div class="kv"><div class="k">Categoria</div><div>${c.categoria}</div></div>
+    <div class="kv"><div class="k">Estado</div><div>${c.estado}</div></div>
+    <div class="kv"><div class="k">Criador</div><div>${c.criador}</div></div>
+    <div class="kv"><div class="k">Meta</div><div>${money(c.meta)}</div></div>
+    <div class="kv"><div class="k">Arrecadado</div><div>${money(c.arrecadado)} (${pct}%)</div></div>
+    <div class="kv"><div class="k">Doadores</div><div>${c.doadores}</div></div>
+    <div class="kv"><div class="k">Corações recebidos</div><div>${heartCount}</div></div>
+    <div class="kv"><div class="k">Emojis recebidos</div><div>${emojiCount}</div></div>
+    <div class="kv"><div class="k">Criada em</div><div>${c.criada}</div></div>
+    <div class="kv"><div class="k">Status</div><div>${badge(c.status)}</div></div>
+  `, `<button class="btn" onclick="closeModal()">Fechar</button>`);
+}
+
+/* ============ RENDER: WITHDRAWALS ============ */
+function renderWithdrawals(){
+  const st=state.w;
+  let list=withdrawals.filter(w=>{
+    const s=st.search.toLowerCase();
+    const matchS=!s || w.vaquinha.toLowerCase().includes(s) || w.solicitante.toLowerCase().includes(s) || w.id.toLowerCase().includes(s);
+    const matchSt=!st.status || w.status===st.status;
+    return matchS && matchSt;
+  });
+  list=sortList(list,st.sort,st.dir);
+  document.getElementById('wCount').textContent=list.length;
+  paginate(list, st, 'wTable', 'wPagination', w=>`<tr>
+      <td class="mono muted">${w.id}</td>
+      <td>${w.vaquinha}</td>
+      <td>${w.solicitante}</td>
+      <td class="mono">${money(w.valor)}</td>
+      <td class="muted">${w.banco}</td>
+      <td>${w.solicitado}</td>
+      <td>${badge(w.status)}</td>
+      <td>
+        <button class="btn" onclick="viewWithdrawal('${w.id}')">Ver</button>
+        ${w.status==='pendente'?`<button class="btn ok" onclick="setWStatus('${w.id}','aprovado')">Aprovar</button><button class="btn bad" onclick="setWStatus('${w.id}','rejeitado')">Rejeitar</button>`:''}
+        ${w.status==='aprovado'?`<button class="btn ok" onclick="setWStatus('${w.id}','pago')">Marcar pago</button>`:''}
+      </td>
+    </tr>`,8);
+  updatePendingCount();
+}
+window.setWStatus=function(id,status){
+  const w=withdrawals.find(w=>w.id===id);
+  if(w){w.status=status; renderAll();}
+}
+window.viewWithdrawal=function(id){
+  const w=withdrawals.find(w=>w.id===id);
+  if(!w) return;
+  openModal(`Saque ${w.id}`, `
+    <div class="kv"><div class="k">Vaquinha</div><div>${w.vaquinha}</div></div>
+    <div class="kv"><div class="k">Solicitante</div><div>${w.solicitante}</div></div>
+    <div class="kv"><div class="k">Valor</div><div>${money(w.valor)}</div></div>
+    <div class="kv"><div class="k">Dados bancários</div><div>${w.banco}</div></div>
+    <div class="kv"><div class="k">Solicitado em</div><div>${w.solicitado}</div></div>
+    <div class="kv"><div class="k">Status</div><div>${badge(w.status)}</div></div>
+    <div class="kv"><div class="k">Observação</div></div>
+    <textarea placeholder="Adicionar nota interna sobre esta solicitação..."></textarea>
+  `, `
+    ${w.status==='pendente'?`<button class="btn ok" onclick="setWStatus('${w.id}','aprovado');closeModal()">Aprovar</button><button class="btn bad" onclick="setWStatus('${w.id}','rejeitado');closeModal()">Rejeitar</button>`:''}
+    <button class="btn" onclick="closeModal()">Fechar</button>
+  `);
+}
+
+/* ============ RENDER: DONATIONS ============ */
+function renderDonations(){
+  const st=state.d;
+  let list=donations.filter(d=>{
+    const s=st.search.toLowerCase();
+    const matchS=!s || d.doador.toLowerCase().includes(s) || d.vaquinha.toLowerCase().includes(s) || d.id.toLowerCase().includes(s);
+    const matchM=!st.method || d.metodo===st.method;
+    const matchSt=!st.status || d.status===st.status;
+    return matchS && matchM && matchSt;
+  });
+  list=sortList(list,st.sort,st.dir);
+  document.getElementById('dCount').textContent=list.length;
+  const methodLabel={pix:'Pix',cartao:'Cartão',boleto:'Boleto'};
+  paginate(list, st, 'dTable', 'dPagination', d=>`<tr>
+      <td class="mono muted">${d.id}</td>
+      <td>${d.doador}</td>
+      <td>${d.vaquinha}</td>
+      <td class="mono">${money(d.valor)}</td>
+      <td>${methodLabel[d.metodo]}</td>
+      <td>${d.data}</td>
+      <td>${badge(d.status)}</td>
+      <td>
+        <button class="btn" onclick="viewDonation('${d.id}')">Ver</button>
+        ${d.status==='confirmada'?`<button class="btn bad" onclick="setDStatus('${d.id}','estornada')">Estornar</button>`:''}
+      </td>
+    </tr>`,8);
+}
+window.setDStatus=function(id,status){
+  const d=donations.find(d=>d.id===id);
+  if(d){d.status=status; renderAll();}
+}
+window.viewDonation=function(id){
+  const d=donations.find(d=>d.id===id);
+  if(!d) return;
+  openModal(`Doação ${d.id}`, `
+    <div class="kv"><div class="k">Doador</div><div>${d.doador}</div></div>
+    <div class="kv"><div class="k">Vaquinha</div><div>${d.vaquinha}</div></div>
+    <div class="kv"><div class="k">Valor</div><div>${money(d.valor)}</div></div>
+    <div class="kv"><div class="k">Método</div><div>${d.metodo}</div></div>
+    <div class="kv"><div class="k">Data</div><div>${d.data}</div></div>
+    <div class="kv"><div class="k">Status</div><div>${badge(d.status)}</div></div>
+  `, `<button class="btn" onclick="closeModal()">Fechar</button>`);
+}
+
+/* ============ RENDER: HEARTS ============ */
+function renderHearts(){
+  const st=state.h;
+  let list=heartSales.filter(h=>{
+    const s=st.search.toLowerCase();
+    return !s || h.comprador.toLowerCase().includes(s) || h.vaquinha.toLowerCase().includes(s) || h.id.toLowerCase().includes(s);
+  });
+  list=sortList(list,st.sort,st.dir);
+  document.getElementById('hCount').textContent=list.length;
+
+  const totalQtd=heartSales.reduce((s,h)=>s+h.quantidade,0);
+  const totalReceita=heartSales.reduce((s,h)=>s+h.valor,0);
+  const compradoresUnicos=new Set(heartSales.map(h=>h.comprador)).size;
+  const hoje=heartSales.filter(h=>h.dataDias===0).reduce((s,h)=>s+h.quantidade,0);
+  document.getElementById('heartCards').innerHTML=`
+    <div class="card heart"><div class="label">Corações vendidos (total)</div><div class="value">${totalQtd}</div><div class="delta">${heartSales.length} compras registradas</div></div>
+    <div class="card"><div class="label">Receita total</div><div class="value">${money(totalReceita)}</div><div class="delta">preço fixo de R$ 0,99/un.</div></div>
+    <div class="card"><div class="label">Compradores únicos</div><div class="value">${compradoresUnicos}</div><div class="delta">média de ${(totalQtd/Math.max(1,heartSales.length)).toFixed(1)} un./compra</div></div>
+    <div class="card"><div class="label">Vendidos hoje</div><div class="value">${hoje}</div><div class="delta">${money(hoje*HEART_PRICE)} em receita hoje</div></div>
+  `;
+
+  paginate(list, st, 'hTable', 'hPagination', h=>`<tr>
+      <td class="mono muted">${h.id}</td>
+      <td>${h.comprador}</td>
+      <td>${h.vaquinha}</td>
+      <td class="mono">${h.quantidade}</td>
+      <td class="mono">${money(h.valor)}</td>
+      <td>${h.data}</td>
+    </tr>`,6);
+}
+
+/* ============ RENDER: EMOJIS ============ */
+function renderEmojis(){
+  const st=state.e;
+  let list=emojiSales.filter(e=>{
+    const s=st.search.toLowerCase();
+    return !s || e.comprador.toLowerCase().includes(s) || e.vaquinha.toLowerCase().includes(s) || e.id.toLowerCase().includes(s);
+  });
+  list=sortList(list,st.sort,st.dir);
+  document.getElementById('eCount').textContent=list.length;
+
+  const totalQtd=emojiSales.reduce((s,e)=>s+e.quantidade,0);
+  const totalReceita=emojiSales.reduce((s,e)=>s+e.valor,0);
+  const compradoresUnicos=new Set(emojiSales.map(e=>e.comprador)).size;
+  const hoje=emojiSales.filter(e=>e.dataDias===0).reduce((s,e)=>s+e.quantidade,0);
+  document.getElementById('emojiCards').innerHTML=`
+    <div class="card"><div class="label">Emojis vendidos (total)</div><div class="value">${totalQtd}</div><div class="delta">${emojiSales.length} compras registradas</div></div>
+    <div class="card"><div class="label">Receita total</div><div class="value">${money(totalReceita)}</div><div class="delta">preço fixo de R$ 0,99/un.</div></div>
+    <div class="card"><div class="label">Compradores únicos</div><div class="value">${compradoresUnicos}</div><div class="delta">média de ${(totalQtd/Math.max(1,emojiSales.length)).toFixed(1)} un./compra</div></div>
+    <div class="card"><div class="label">Vendidos hoje</div><div class="value">${hoje}</div><div class="delta">${money(hoje*EMOJI_PRICE)} em receita hoje</div></div>
+  `;
+
+  paginate(list, st, 'eTable', 'ePagination', e=>`<tr>
+      <td class="mono muted">${e.id}</td>
+      <td>${e.comprador}</td>
+      <td>${e.vaquinha}</td>
+      <td class="mono">${e.quantidade}</td>
+      <td class="mono">${money(e.valor)}</td>
+      <td>${e.data}</td>
+    </tr>`,6);
+}
+
+/* ============ RENDER: TRANSACTIONS ============ */
+function renderTransactions(){
+  const st=state.t;
+  let list=transactions.filter(t=>{
+    const s=st.search.toLowerCase();
+    const matchS=!s || t.vaquinha.toLowerCase().includes(s) || t.id.toLowerCase().includes(s);
+    const matchT=!st.type || t.tipo===st.type;
+    return matchS && matchT;
+  });
+  list=sortList(list,st.sort,st.dir);
+  document.getElementById('tCount').textContent=list.length;
+  paginate(list, st, 'tTable', 'tPagination', t=>`<tr>
+      <td class="mono muted">${t.id}</td>
+      <td>${tbadge(t.tipo)}</td>
+      <td>${t.vaquinha}</td>
+      <td class="mono">${money(t.valor)}</td>
+      <td>${t.data}</td>
+      <td>${badge(t.status)}</td>
+    </tr>`,6);
+}
+
+/* ============ RENDER: USERS ============ */
+function renderUsers(){
+  const st=state.u;
+  let list=users.filter(u=>{
+    const s=st.search.toLowerCase();
+    const matchS=!s || u.nome.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
+    const matchSt=!st.status || u.status===st.status;
+    return matchS && matchSt;
+  });
+  document.getElementById('uCount').textContent=list.length;
+  paginate(list, st, 'uTable', 'uPagination', u=>`<tr>
+      <td class="mono muted">${u.id}</td>
+      <td>${u.nome}</td>
+      <td class="muted">${u.email}</td>
+      <td class="mono">${u.criadas}</td>
+      <td class="mono">${money(u.totalDoado)}</td>
+      <td>${u.cadastro}</td>
+      <td>${badge(u.status)}</td>
+      <td>
+        ${u.status==='ativo'?`<button class="btn bad" onclick="setUStatus('${u.id}','suspenso')">Suspender</button>`:`<button class="btn ok" onclick="setUStatus('${u.id}','ativo')">Reativar</button>`}
+      </td>
+    </tr>`,8);
+}
+window.setUStatus=function(id,status){
+  const u=users.find(u=>u.id===id);
+  if(u){u.status=status; renderAll();}
+}
+
+/* ============ MODAL ============ */
+function openModal(title,body,foot){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalFoot').innerHTML=foot;
+  document.getElementById('overlay').classList.add('show');
+}
+window.closeModal=function(){document.getElementById('overlay').classList.remove('show');}
+document.getElementById('modalClose').onclick=closeModal;
+document.getElementById('overlay').onclick=(e)=>{if(e.target.id==='overlay') closeModal();};
+
+/* ============ WIRE FILTERS ============ */
+document.getElementById('campSearch').oninput=e=>{state.camp.search=e.target.value; state.camp.page=1; renderCampaigns();};
+document.getElementById('campStatusFilter').onchange=e=>{state.camp.status=e.target.value; state.camp.page=1; renderCampaigns();};
+document.getElementById('campCategoryFilter').onchange=e=>{state.camp.cat=e.target.value; state.camp.page=1; renderCampaigns();};
+document.getElementById('campEstadoFilter').onchange=e=>{state.camp.estado=e.target.value; state.camp.page=1; renderCampaigns();};
+CATEGORIES.forEach(c=>{
+  const o=document.createElement('option'); o.value=c; o.textContent=c;
+  document.getElementById('campCategoryFilter').appendChild(o);
+});
+
+document.getElementById('wSearch').oninput=e=>{state.w.search=e.target.value; state.w.page=1; renderWithdrawals();};
+document.getElementById('wStatusFilter').onchange=e=>{state.w.status=e.target.value; state.w.page=1; renderWithdrawals();};
+
+document.getElementById('dSearch').oninput=e=>{state.d.search=e.target.value; state.d.page=1; renderDonations();};
+document.getElementById('dMethodFilter').onchange=e=>{state.d.method=e.target.value; state.d.page=1; renderDonations();};
+document.getElementById('dStatusFilter').onchange=e=>{state.d.status=e.target.value; state.d.page=1; renderDonations();};
+
+document.getElementById('tSearch').oninput=e=>{state.t.search=e.target.value; state.t.page=1; renderTransactions();};
+document.getElementById('tTypeFilter').onchange=e=>{state.t.type=e.target.value; state.t.page=1; renderTransactions();};
+
+document.getElementById('uSearch').oninput=e=>{state.u.search=e.target.value; state.u.page=1; renderUsers();};
+document.getElementById('uStatusFilter').onchange=e=>{state.u.status=e.target.value; state.u.page=1; renderUsers();};
+
+document.getElementById('eSearch').oninput=e=>{state.e.search=e.target.value; state.e.page=1; renderEmojis();};
+document.getElementById('hSearch').oninput=e=>{state.h.search=e.target.value; state.h.page=1; renderHearts();};
+
+document.getElementById('globalSearch').oninput=e=>{
+  const v=e.target.value;
+  state.camp.search=v; state.w.search=v; state.d.search=v; state.t.search=v; state.u.search=v; state.e.search=v; state.h.search=v;
+  document.getElementById('campSearch').value=v;
+  document.getElementById('wSearch').value=v;
+  document.getElementById('dSearch').value=v;
+  document.getElementById('tSearch').value=v;
+  document.getElementById('uSearch').value=v;
+  document.getElementById('eSearch').value=v;
+  document.getElementById('hSearch').value=v;
+  renderAll();
+};
+
+function updatePendingCount(){
+  const btn=document.querySelector('#nav button[data-id="withdrawals"] .count');
+  if(btn) btn.textContent=withdrawals.filter(w=>w.status==='pendente').length;
+}
+
+/* ============ INIT SORT HEADERS ============ */
+function wireAllSortHeaders(){
+  wireSortHeaders('sec-campaigns','camp',renderCampaigns);
+  wireSortHeaders('sec-withdrawals','w',renderWithdrawals);
+  wireSortHeaders('sec-donations','d',renderDonations);
+  wireSortHeaders('sec-transactions','t',renderTransactions);
+  wireSortHeaders('sec-emojis','e',renderEmojis);
+  wireSortHeaders('sec-hearts','h',renderHearts);
+}
+wireAllSortHeaders();
+
+function renderAll(){
+  renderOverview();
+  renderPerformance();
+  renderCampaigns();
+  renderWithdrawals();
+  renderDonations();
+  renderTransactions();
+  renderUsers();
+  renderEmojis();
+  renderHearts();
+  wireAllSortHeaders();
+}
+
+goTo('overview');
+</script>
+</body>
+</html>
